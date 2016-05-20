@@ -23,6 +23,7 @@ The process I followed was pretty iterative. At many points I would find an addi
 #### 1. Read data. An important step here was to account for special na.values by setting na.string = c(".","#DIV/0!", "", "NA")
 ```{r, echo = FALSE, warning = FALSE}
 library(caret)
+library(dplyr)
 train <- read.csv("/Users/karafollmer/Downloads/pml-training.csv", na.string = c(".","#DIV/0!", "", "NA"), sep = ",", stringsAsFactors = FALSE)
 test <- read.csv("/Users/karafollmer/Downloads/pml-testing.csv", na.string = c(".","#DIV/0!", "", "NA"), sep = ",", stringsAsFactors = FALSE)
 ```
@@ -50,7 +51,7 @@ train2 <- train1[,NAflag2]
 I also chesked from variables with near zero variance, but discovered those had already been removed by my NA cleaning.
 ```{r}
 nsv <- nearZeroVar(train2, saveMetrics = TRUE)
-nsv
+head(nsv)
 ```
 
 Correlation Analysis: I looked for variables with correlation > 0.95, then plotted them against each other to see which seemed to be a better predictor of classe.
@@ -70,13 +71,12 @@ grid.arrange(a,b,c,d,ncol = 2)
 
 Findings from looking at correlations: kick out total_accel_belt, accel_belt_z, accel_belt_x because they have another highly correlated variable that looks to be better in predicting class. Kick out gyros_dumbbell_z because of the extreme outlier.
 ```{r, echo = FALSE}
-library(dplyr)
 train3 <- select(train2, -total_accel_belt, -accel_belt_z, -accel_belt_x, -gyros_dumbbell_z)
 ```
 
 #### 4. Test different model fit methods.
 Tree prediction with 'rpart' was not accurate enough
-```{r}
+```{r, eval = FALSE, echo = FALSE}
 modFit <- train(classe ~ . , method ="rpart", data = train3)
 print(modFit$finalModel)
 plot(modFit$finalModel, uniform = TRUE, main = "Classification Tree")
